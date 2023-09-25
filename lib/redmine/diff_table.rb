@@ -25,7 +25,6 @@ module Redmine
     # Initialize with a Diff file and the type of Diff View
     # The type view must be inline or sbs (side_by_side)
     def initialize(type="inline", style=nil)
-      super()
       @parsing = false
       @added = 0
       @removed = 0
@@ -119,7 +118,7 @@ module Redmine
     end
 
     def parse_line(line, type="inline")
-      if line.start_with?('+')
+      if line[0, 1] == "+"
         diff = diff_for_added_line
         diff.line_right = line[1..-1]
         diff.nb_line_right = @line_num_r
@@ -127,7 +126,7 @@ module Redmine
         @line_num_r += 1
         @added += 1
         true
-      elsif line.start_with?('-')
+      elsif line[0, 1] == "-"
         diff = Diff.new
         diff.line_left = line[1..-1]
         diff.nb_line_left = @line_num_l
@@ -138,7 +137,7 @@ module Redmine
         true
       else
         write_offsets
-        if line.start_with?(/\s/)
+        if /\s/.match?(line[0, 1])
           diff = Diff.new
           diff.line_right = line[1..-1]
           diff.nb_line_right = @line_num_r

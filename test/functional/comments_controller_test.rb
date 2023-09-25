@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-require_relative '../test_helper'
+require File.expand_path('../../test_helper', __FILE__)
 
 class CommentsControllerTest < Redmine::ControllerTest
   fixtures :projects, :users, :email_addresses, :roles, :members, :member_roles, :enabled_modules, :news, :comments

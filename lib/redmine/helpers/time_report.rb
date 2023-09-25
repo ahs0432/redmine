@@ -49,7 +49,7 @@ module Redmine
           @scope.includes(:activity).
               reorder(nil).
               group(@criteria.collect{|criteria| @available_criteria[criteria][:sql]} + time_columns).
-              joins(@criteria.filter_map{|criteria| @available_criteria[criteria][:joins]}).
+              joins(@criteria.collect{|criteria| @available_criteria[criteria][:joins]}.compact).
               sum(:hours).each do |hash, hours|
             h = {'hours' => hours}
             (@criteria + time_columns).each_with_index do |name, i|
@@ -71,10 +71,10 @@ module Redmine
             end
           end
 
-          min = @hours.pluck('spent_on').min
+          min = @hours.collect {|row| row['spent_on']}.min
           @from = min ? min.to_date : User.current.today
 
-          max = @hours.pluck('spent_on').max
+          max = @hours.collect {|row| row['spent_on']}.max
           @to = max ? max.to_date : User.current.today
 
           @total_hours = @hours.inject(0) {|s,k| s = s + k['hours'].to_f}

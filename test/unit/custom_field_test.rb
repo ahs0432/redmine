@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-require_relative '../test_helper'
+require File.expand_path('../../test_helper', __FILE__)
 
 class CustomFieldTest < ActiveSupport::TestCase
   fixtures :custom_fields, :roles, :projects,
@@ -55,7 +55,7 @@ class CustomFieldTest < ActiveSupport::TestCase
   def test_default_value_should_be_validated
     field = CustomField.new(:name => 'Test', :field_format => 'int')
     field.default_value = 'abc'
-    assert field.invalid?
+    assert !field.valid?
     field.default_value = '6'
     assert field.valid?
   end
@@ -69,7 +69,7 @@ class CustomFieldTest < ActiveSupport::TestCase
 
   def test_field_format_should_be_validated
     field = CustomField.new(:name => 'Test', :field_format => 'foo')
-    assert field.invalid?
+    assert !field.valid?
   end
 
   def test_field_format_validation_should_accept_formats_added_at_runtime

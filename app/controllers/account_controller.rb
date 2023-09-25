@@ -103,9 +103,7 @@ class AccountController < ApplicationController
         user = User.find_by_mail(email)
         # user not found
         unless user
-          # Don't show an error indicating a non-existent email address
-          # to prevent email harvesting
-          flash[:notice] = l(:notice_account_lost_email_sent)
+          flash.now[:error] = l(:notice_account_unknown_email)
           return
         end
         unless user.active?
@@ -380,7 +378,7 @@ class AccountController < ApplicationController
       flash[:notice] = l(:notice_account_register_done, :email => ERB::Util.h(user.mail))
       redirect_to signin_path
     else
-      yield if block
+      yield if block_given?
     end
   end
 
@@ -396,7 +394,7 @@ class AccountController < ApplicationController
       flash[:notice] = l(:notice_account_activated)
       redirect_to my_account_path
     else
-      yield if block
+      yield if block_given?
     end
   end
 
@@ -409,7 +407,7 @@ class AccountController < ApplicationController
       Mailer.deliver_account_activation_request(user)
       account_pending(user)
     else
-      yield if block
+      yield if block_given?
     end
   end
 

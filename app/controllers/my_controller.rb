@@ -33,6 +33,7 @@ class MyController < ApplicationController
   helper :custom_fields
   helper :queries
   helper :activities
+  helper :calendars
 
   def index
     page

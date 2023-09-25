@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-require_relative '../test_helper'
+require File.expand_path('../../test_helper', __FILE__)
 
 class IssueStatusesControllerTest < Redmine::ControllerTest
   fixtures :issue_statuses, :issues, :users, :trackers, :workflows
@@ -64,7 +64,6 @@ class IssueStatusesControllerTest < Redmine::ControllerTest
     get :new
     assert_response :success
     assert_select 'input[name=?]', 'issue_status[name]'
-    assert_select 'textarea[name=?]', 'issue_status[description]'
   end
 
   def test_create
@@ -73,8 +72,7 @@ class IssueStatusesControllerTest < Redmine::ControllerTest
         :create,
         :params => {
           :issue_status => {
-            :name => 'New status',
-            :description => 'New status description'
+            :name => 'New status'
           }
         }
       )
@@ -82,7 +80,6 @@ class IssueStatusesControllerTest < Redmine::ControllerTest
     assert_redirected_to :action => 'index'
     status = IssueStatus.order('id DESC').first
     assert_equal 'New status', status.name
-    assert_equal 'New status description', status.description
   end
 
   def test_create_with_failure
@@ -102,7 +99,6 @@ class IssueStatusesControllerTest < Redmine::ControllerTest
     get(:edit, :params => {:id => '3'})
     assert_response :success
     assert_select 'input[name=?][value=?]', 'issue_status[name]', 'Resolved'
-    assert_select 'textarea[name=?]', 'issue_status[description]', 'Description for Resolved issue status'
   end
 
   def test_update
@@ -111,15 +107,13 @@ class IssueStatusesControllerTest < Redmine::ControllerTest
       :params => {
         :id => '3',
         :issue_status => {
-          :name => 'Renamed status',
-          :description => 'Renamed status description'
+          :name => 'Renamed status'
         }
       }
     )
     assert_redirected_to :action => 'index'
     status = IssueStatus.find(3)
     assert_equal 'Renamed status', status.name
-    assert_equal 'Renamed status description', status.description
   end
 
   def test_update_with_failure

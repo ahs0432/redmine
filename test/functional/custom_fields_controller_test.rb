@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-require_relative '../test_helper'
+require File.expand_path('../../test_helper', __FILE__)
 
 class CustomFieldsControllerTest < Redmine::ControllerTest
   fixtures :custom_fields, :custom_values,
@@ -597,7 +597,7 @@ class CustomFieldsControllerTest < Redmine::ControllerTest
     files =
       Dir.glob(File.join(Rails.root, 'app/models/*_custom_field.rb')).
         map {|f| File.basename(f).sub(/\.rb$/, '')}
-    classes = files.map {|x| x.classify.constantize}
+    classes = files.map(&:classify).map(&:constantize)
     assert classes.size > 0
     classes
   end

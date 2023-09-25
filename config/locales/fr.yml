@@ -156,7 +156,6 @@ fr:
         must_contain_lowercase: "doit contenir des lettres minuscules (a-z)"
         must_contain_digits: "doit contenir des chiffres (0-9)"
         must_contain_special_chars: "doit contenir des caractères spéciaux (!, $, %, ...)"
-        domain_not_allowed: "contains a domain not allowed (%{domain})"
 
   actionview_instancetag_blank_option: Choisir
 
@@ -177,6 +176,7 @@ fr:
   notice_account_password_updated: Mot de passe mis à jour avec succès.
   notice_account_wrong_password: Mot de passe incorrect
   notice_account_register_done: Un message contenant les instructions pour activer votre compte vous a été envoyé à l'adresse %{email}.
+  notice_account_unknown_email: Aucun compte ne correspond à cette adresse.
   notice_account_not_activated_yet: Vous n'avez pas encore activé votre compte. Si vous voulez recevoir un nouveau message d'activation, veuillez <a href="%{url}">cliquer sur ce lien</a>.
   notice_account_locked: Votre compte est verrouillé.
   notice_can_t_change_password: Ce compte utilise une authentification externe. Impossible de changer le mot de passe.
@@ -299,7 +299,7 @@ fr:
   field_priority: Priorité
   field_fixed_version: Version cible
   field_user: Utilisateur
-  field_principal: User or Group
+  field_principal: Principal
   field_role: Rôle
   field_homepage: Site web
   field_is_public: Public
@@ -626,6 +626,7 @@ fr:
   label_reported_issues: Demandes soumises
   label_assigned_issues: Demandes assignées
   label_assigned_to_me_issues: Demandes qui me sont assignées
+  label_last_login: Dernière connexion
   label_registered_on: Inscrit le
   label_activity: Activité
   label_user_activity: "Activité de %{value}"
@@ -780,6 +781,10 @@ fr:
   label_view_all_revisions: Voir toutes les révisions
   label_x_revisions: "%{count} révisions"
   label_max_size: Taille maximale
+  label_sort_highest: Remonter en premier
+  label_sort_higher: Remonter
+  label_sort_lower: Descendre
+  label_sort_lowest: Descendre en dernier
   label_roadmap: Roadmap
   label_roadmap_due_in: "Échéance dans %{value}"
   label_roadmap_overdue: "En retard de %{value}"
@@ -1260,7 +1265,7 @@ fr:
   setting_mail_handler_preferred_body_part: "Partie privilégiée des messages multipart (HTML)"
   setting_show_status_changes_in_mail_subject: "Inclure les changements de statut des demandes dans le sujet des notifications"
   label_preferred_body_part_text: "Texte"
-  label_preferred_body_part_html: "HTML"
+  label_preferred_body_part_html: "HTML (expérimental)"
   field_parent_issue_subject: "Sujet de la demande parent"
   permission_edit_own_issues: "Modifier ses propres demandes"
   text_select_apply_tracker: "Sélectionner un tracker"
@@ -1272,6 +1277,7 @@ fr:
   text_gs_available: "Support PDF ImageMagick disponible (optionnel)"
   field_recently_used_projects: "Nombre de projets consultés récemment affichés dans le menu"
   label_optgroup_bookmarks: "Favoris"
+  label_optgroup_others: "Autres projets"
   label_optgroup_recents: "Consultés récemment"
   button_project_bookmark: "Ajouter aux favoris"
   button_project_bookmark_delete: "Retirer des favoris"
@@ -1304,7 +1310,7 @@ fr:
   notice_issue_not_reopenable_by_closed_parent_issue: Cette demande ne peut être réouverte car sa demande parente est fermée.
   error_bulk_download_size_too_big: Ces pièces jointes ne peuvent pas être téléchargées en masse car
     la taille totale des fichiers dépasse la taille maximale autorisée (%{max_size})
-  setting_bulk_download_max_size: Taille totale maximale du téléchargement groupé
+  setting_bulk_download_max_size: Taille totale maximale du télécharement groupé
   label_download_all_attachments: Télécharger tous les fichiers
   error_attachments_too_many: Ce fichier ne peut être transmis car il excède le nombre maximum de fichier pouvant être attaché simultanément (%{max_number_of_files})
   setting_email_domains_allowed: Domaines de messagerie autorisés
@@ -1416,50 +1422,9 @@ fr:
   label_subtask: Subtask
   label_default_query: Rapport par défaut
   field_default_project_query: Default project query
-  label_required_administrators: requis pour les administrateurs
+  label_required_administrators: required for administrators
   twofa_hint_required_administrators_html: Setting <strong>%{label}</strong> behaves
     like optional, but will require all users with administration rights to set up two-factor
     authentication at their next login.
   label_auto_watch_on: Auto watch
   label_auto_watch_on_issue_contributed_to: Issues I contributed to
-  text_project_close_confirmation: Are you sure you want to close the '%{value}' project
-    to make it read-only?
-  text_project_reopen_confirmation: Are you sure you want to reopen the '%{value}' project?
-  text_project_archive_confirmation: "Etes-vous sûr de vouloir archiver le projet '%{value}' ?"
-  mail_destroy_project_failed: "Le projet %{value} n'a pas pu être supprimé."
-  mail_destroy_project_successful: Project %{value} was deleted successfully.
-  mail_destroy_project_with_subprojects_successful: Project %{value} and its subprojects
-    were deleted successfully.
-  project_status_scheduled_for_deletion: scheduled for deletion
-  text_projects_bulk_destroy_confirmation: Are you sure you want to delete the selected
-    projects and related data?
-  text_projects_bulk_destroy_head: |
-    You are about to permanently delete the following projects, including possible subprojects and any related data.
-    Please review the information below and confirm that this is indeed what you want to do.
-    This action cannot be undone.
-  text_projects_bulk_destroy_confirm: To confirm, please enter "%{yes}" in the box below.
-  text_subprojects_bulk_destroy: 'including its subproject(s): %{value}'
-  field_current_password: Current password
-  sudo_mode_new_info_html: "<strong>What's happening?</strong> You need to reconfirm
-    your password before taking any administrative actions, this ensures your account
-    stays protected."
-  label_edited: Edited
-  label_time_by_author: "%{time} by %{author}"
-  field_default_time_entry_activity: Default spent time activity
-  field_is_member_of_group: Member of group
-  text_users_bulk_destroy_head: You are about to delete the following users and remove
-    all references to them. This cannot be undone. Often, locking users instead of deleting
-    them is the better solution.
-  text_users_bulk_destroy_confirm: To confirm, please enter "%{yes}" below.
-  permission_select_project_publicity: Set project public or private
-  label_auto_watch_on_issue_created: Issues I created
-  field_any_searchable: Any searchable text
-  label_contains_any_of: contains any of
-  button_apply_issues_filter: Apply issues filter
-  label_view_previous_annotation: View annotation prior to this change
-  label_has_been: has been
-  label_has_never_been: has never been
-  label_changed_from: changed from
-  label_issue_statuses_description: Issue statuses description
-  label_open_issue_statuses_description: View all issue statuses description
-  text_select_apply_issue_status: Select issue status

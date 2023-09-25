@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-require_relative '../../test_helper'
+require File.expand_path('../../../test_helper', __FILE__)
 
 class Redmine::ApiTest::IssuesTest < Redmine::ApiTest::Base
   fixtures(
@@ -231,7 +231,7 @@ class Redmine::ApiTest::IssuesTest < Redmine::ApiTest::Base
     json = ActiveSupport::JSON.decode(response.body)
     status_ids_used = json['issues'].collect {|j| j['status']['id']}
     assert_equal 3, status_ids_used.length
-    assert status_ids_used.all?(5)
+    assert status_ids_used.all? {|id| id == 5}
   end
 
   test "GET /issues/:id.xml with journals" do
@@ -969,8 +969,7 @@ class Redmine::ApiTest::IssuesTest < Redmine::ApiTest::Base
   end
 
   def test_create_issue_with_uploaded_file
-    file_content = 'test_create_with_upload'
-    token = xml_upload(file_content, credentials('jsmith'))
+    token = xml_upload('test_create_with_upload', credentials('jsmith'))
     attachment = Attachment.find_by_token(token)
 
     # create the issue with the upload's token
@@ -992,7 +991,7 @@ class Redmine::ApiTest::IssuesTest < Redmine::ApiTest::Base
     attachment.reload
     assert_equal 'test.txt', attachment.filename
     assert_equal 'text/plain', attachment.content_type
-    assert_equal file_content.size, attachment.filesize
+    assert_equal 'test_create_with_upload'.size, attachment.filesize
     assert_equal 2, attachment.author_id
 
     # get the issue with its attachments

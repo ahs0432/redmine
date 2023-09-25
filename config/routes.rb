@@ -108,11 +108,7 @@ Rails.application.routes.draw do
   match 'my/twofa/backup_codes', :controller => 'twofa_backup_codes', :action => 'show', :via => [:get]
   match 'users/:user_id/twofa/deactivate', :controller => 'twofa', :action => 'admin_deactivate', :via => :post
 
-  match '/users/context_menu', to: 'context_menus#users', as: :users_context_menu, via: [:get, :post]
   resources :users do
-    collection do
-      delete 'bulk_destroy'
-    end
     resources :memberships, :controller => 'principal_memberships'
     resources :email_addresses, :only => [:index, :create, :update, :destroy]
   end
@@ -132,7 +128,6 @@ Rails.application.routes.draw do
   resources :projects do
     collection do
       get 'autocomplete'
-      delete 'bulk_destroy'
     end
 
     member do
@@ -369,8 +364,6 @@ Rails.application.routes.draw do
   get 'admin/info', :to => 'admin#info'
   post 'admin/test_email', :to => 'admin#test_email', :as => 'test_email'
   post 'admin/default_configuration', :to => 'admin#default_configuration'
-
-  match '/admin/projects_context_menu', :to => 'context_menus#projects', :as => 'projects_context_menu', :via => [:get, :post]
 
   resources :auth_sources do
     member do

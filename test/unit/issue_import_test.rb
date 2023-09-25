@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-require_relative '../test_helper'
+require File.expand_path('../../test_helper', __FILE__)
 
 class IssueImportTest < ActiveSupport::TestCase
   fixtures :projects, :enabled_modules,
@@ -110,7 +110,7 @@ class IssueImportTest < ActiveSupport::TestCase
     import.save!
 
     issues = new_records(Issue, 3) {import.run}
-    assert_equal ['New', 'New', 'Assigned'], issues.map {|x| x.status.name}
+    assert_equal ['New', 'New', 'Assigned'], issues.map(&:status).map(&:name)
   end
 
   def test_parent_should_be_set

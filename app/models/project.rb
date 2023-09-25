@@ -25,11 +25,12 @@ class Project < ActiveRecord::Base
   STATUS_ACTIVE     = 1
   STATUS_CLOSED     = 5
   STATUS_ARCHIVED   = 9
-  STATUS_SCHEDULED_FOR_DELETION = 10
 
   # Maximum length for project identifiers
   IDENTIFIER_MAX_LENGTH = 100
 
+  # Specific overridden Activities
+  has_many :time_entry_activities, :dependent => :destroy
   has_many :memberships, :class_name => 'Member', :inverse_of => :project
   # Memberships of active users only
   has_many :members,
@@ -42,8 +43,6 @@ class Project < ActiveRecord::Base
   belongs_to :default_version, :class_name => 'Version'
   belongs_to :default_assigned_to, :class_name => 'Principal'
   has_many :time_entries, :dependent => :destroy
-  # Specific overridden Activities
-  has_many :time_entry_activities, :dependent => :destroy
   has_many :queries, :dependent => :destroy
   has_many :documents, :dependent => :destroy
   has_many :news, lambda {includes(:author)}, :dependent => :destroy
@@ -183,7 +182,7 @@ class Project < ActiveRecord::Base
     perm = Redmine::AccessControl.permission(permission)
     base_statement =
       if perm && perm.read?
-        "#{Project.table_name}.status <> #{Project::STATUS_ARCHIVED} AND #{Project.table_name}.status <> #{Project::STATUS_SCHEDULED_FOR_DELETION}"
+        "#{Project.table_name}.status <> #{Project::STATUS_ARCHIVED}"
       else
         "#{Project.table_name}.status = #{Project::STATUS_ACTIVE}"
       end
@@ -329,17 +328,15 @@ class Project < ActiveRecord::Base
   # Returns a :conditions SQL string that can be used to find the issues associated with this project.
   #
   # Examples:
-  #   project.project_condition(true)  => "(projects.lft >= 1 AND projects.rgt <= 10)"
+  #   project.project_condition(true)  => "(projects.id = 1 OR (projects.lft > 1 AND projects.rgt < 10))"
   #   project.project_condition(false) => "projects.id = 1"
   def project_condition(with_subprojects)
+    cond = "#{Project.table_name}.id = #{id}"
     if with_subprojects
-      "(" \
-        "#{Project.table_name}.lft >= #{lft} AND " \
-        "#{Project.table_name}.rgt <= #{rgt}" \
-      ")"
-    else
-      "#{Project.table_name}.id = #{id}"
+      cond = "(#{cond} OR (#{Project.table_name}.lft > #{lft} AND " \
+               "#{Project.table_name}.rgt < #{rgt}))"
     end
+    cond
   end
 
   def self.find(*args)
@@ -400,10 +397,6 @@ class Project < ActiveRecord::Base
 
   def archived?
     self.status == STATUS_ARCHIVED
-  end
-
-  def scheduled_for_deletion?
-    self.status == STATUS_SCHEDULED_FOR_DELETION
   end
 
   # Archives the project and its descendants
@@ -671,8 +664,6 @@ class Project < ActiveRecord::Base
   end
 
   def <=>(project)
-    return nil unless project.is_a?(Project)
-
     name.casecmp(project.name)
   end
 
@@ -827,6 +818,7 @@ class Project < ActiveRecord::Base
     'name',
     'description',
     'homepage',
+    'is_public',
     'identifier',
     'custom_field_values',
     'custom_fields',
@@ -836,22 +828,6 @@ class Project < ActiveRecord::Base
     'default_version_id',
     'default_issue_query_id',
     'default_assigned_to_id')
-
-  safe_attributes(
-    'is_public',
-    :if =>
-      lambda do |project, user|
-        if project.new_record?
-          if user.admin?
-            true
-          else
-            default_member_role&.has_permission?(:select_project_publicity)
-          end
-        else
-          user.allowed_to?(:select_project_publicity, project)
-        end
-      end
-  )
 
   safe_attributes(
     'enabled_module_names',
@@ -930,7 +906,7 @@ class Project < ActiveRecord::Base
   #   project.copy(1, :only => 'members')                # => copies members only
   #   project.copy(1, :only => ['members', 'versions'])  # => copies members and versions
   def copy(project, options={})
-    project = Project.find(project) unless project.is_a?(Project)
+    project = project.is_a?(Project) ? project : Project.find(project)
 
     to_be_copied = %w(members wiki versions issue_categories issues queries boards documents)
     to_be_copied = to_be_copied & Array.wrap(options[:only]) unless options[:only].nil?
@@ -958,7 +934,7 @@ class Project < ActiveRecord::Base
 
   # Returns a new unsaved Project instance with attributes copied from +project+
   def self.copy_from(project)
-    project = Project.find(project) unless project.is_a?(Project)
+    project = project.is_a?(Project) ? project : Project.find(project)
     # clear unique attributes
     attributes =
       project.attributes.dup.except('id', 'name', 'identifier',

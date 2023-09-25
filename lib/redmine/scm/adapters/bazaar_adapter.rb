@@ -56,7 +56,10 @@ module Redmine
         end
 
         def initialize(url, root_url=nil, login=nil, password=nil, path_encoding=nil)
-          super(url, url, nil, nil, 'UTF-8')
+          @url = url
+          @root_url = url
+          @path_encoding = 'UTF-8'
+          # do not call *super* for non ASCII repository path
         end
 
         def bzr_path_encodig=(encoding)

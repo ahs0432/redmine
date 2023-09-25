@@ -76,6 +76,11 @@ module Redmine
           end
         end
 
+        def initialize(url, root_url=nil, login=nil, password=nil, path_encoding=nil)
+          super
+          @path_encoding = path_encoding.blank? ? 'UTF-8' : path_encoding
+        end
+
         def path_encoding
           @path_encoding
         end
@@ -149,7 +154,7 @@ module Redmine
               # do nothing
             end
           end
-          path_prefix = path.blank? ? '' : with_trailing_slash(path)
+          path_prefix = path.blank? ? '' : with_trailling_slash(path)
 
           entries = Entries.new
           as_ary(manifest['dir']).each do |e|
@@ -358,7 +363,7 @@ module Redmine
         def as_ary(o)
           return [] unless o
 
-          o.is_a?(Array) ? o : [o]
+          o.is_a?(Array) ? o : Array[o]
         end
         private :as_ary
       end

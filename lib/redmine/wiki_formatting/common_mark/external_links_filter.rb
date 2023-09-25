@@ -31,11 +31,7 @@ module Redmine
             next unless url
             next if url.starts_with?("/") || url.starts_with?("#") || !url.include?(':')
 
-            scheme = begin
-              URI.parse(url).scheme
-            rescue
-              nil
-            end
+            scheme = URI.parse(url).scheme rescue nil
             next if scheme.blank?
 
             klass = node["class"].presence

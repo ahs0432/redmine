@@ -23,8 +23,6 @@ module Redmine
     # Simple class to compute the start and end dates of a calendar
     class Calendar
       include Redmine::I18n
-      include Redmine::Utils::DateCalculation
-
       attr_reader :startdt, :enddt
 
       def initialize(date, lang = current_language, period = :month)
@@ -47,21 +45,6 @@ module Redmine
         else
           raise 'Invalid period'
         end
-      end
-
-      def format_month
-        (@startdt..@enddt).to_a
-      end
-
-      def week_number(day)
-        (day + (11 - day.cwday) % 7).cweek
-      end
-
-      def day_css_classes(day)
-        css = day.month==month ? +'even' : +'odd'
-        css << " today" if User.current.today == day
-        css << " nwday" if non_working_week_days.include?(day.cwday)
-        css
       end
 
       # Sets calendar events

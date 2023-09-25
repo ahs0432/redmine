@@ -58,7 +58,7 @@ module Redmine
             else
               value = encode_value(args.first)
               if @struct.last.is_a?(Array)
-                if args.size == 1 && !block
+                if args.size == 1 && !block_given?
                   @struct.last << value
                 else
                   @struct.last << (args.last || {}).merge(:value => value)
@@ -68,7 +68,7 @@ module Redmine
               end
             end
           end
-          if block
+          if block_given?
             @struct << (args.first.is_a?(Hash) ? args.first : {})
             yield(self)
             ret = @struct.pop

@@ -68,7 +68,6 @@ module Redmine
       # Syntax highlighting is completed within each line.
       class CustomHTMLLinewise < ::Rouge::Formatter
         def initialize(formatter)
-          super()
           @formatter = formatter
         end
 

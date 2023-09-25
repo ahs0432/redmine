@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-require_relative 'wiki_formatting/textile/redcloth3'
+require File.expand_path('../wiki_formatting/textile/redcloth3', __FILE__)
 require 'digest/md5'
 
 module Redmine

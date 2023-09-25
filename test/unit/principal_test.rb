@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-require_relative '../test_helper'
+require File.expand_path('../../test_helper', __FILE__)
 
 class PrincipalTest < ActiveSupport::TestCase
   fixtures :users, :projects, :members, :member_roles, :roles,
@@ -85,8 +85,8 @@ class PrincipalTest < ActiveSupport::TestCase
     users = scope.select {|p| p.is_a?(User)}.sort
     groups = scope.select {|p| p.is_a?(Group)}.sort
 
-    assert_equal (users + groups).map {|p| p.name.downcase},
-                 scope.sorted.map {|p| p.name.downcase}
+    assert_equal (users + groups).map(&:name).map(&:downcase),
+                 scope.sorted.map(&:name).map(&:downcase)
   end
 
   test "like scope should search login" do

@@ -91,8 +91,6 @@ class Enumeration < ActiveRecord::Base
   end
 
   def <=>(enumeration)
-    return nil unless enumeration.is_a?(Enumeration)
-
     position <=> enumeration.position
   end
 

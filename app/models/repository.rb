@@ -141,8 +141,6 @@ class Repository < ActiveRecord::Base
   end
 
   def <=>(repository)
-    return nil unless repository.is_a?(Repository)
-
     if is_default?
       -1
     elsif repository.is_default?
@@ -187,11 +185,6 @@ class Repository < ActiveRecord::Base
   end
 
   def supports_all_revisions?
-    ActiveSupport::Deprecation.warn 'Repository#supports_all_revisions? is deprecated and will be removed in Redmine 6.0. Please use #supports_history instead.'
-    supports_history?
-  end
-
-  def supports_history?
     true
   end
 
@@ -438,7 +431,7 @@ class Repository < ActiveRecord::Base
     # commits.to_a.sort! {|x, y| x.last <=> y.last}
     changes = Change.joins(:changeset).where("#{Changeset.table_name}.repository_id = ?", id).
                 select("committer, user_id, count(*) as count").group("committer, user_id")
-    user_ids = changesets.filter_map(&:user_id).uniq
+    user_ids = changesets.map(&:user_id).compact.uniq
     authors_names = User.where(:id => user_ids).inject({}) do |memo, user|
       memo[user.id] = user.to_s
       memo

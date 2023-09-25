@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative 'string/conversions'
-require_relative 'string/inflections'
+require File.dirname(__FILE__) + '/string/conversions'
+require File.dirname(__FILE__) + '/string/inflections'
 
 # @private
 class String

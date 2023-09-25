@@ -29,7 +29,7 @@ module Redmine
       ('gswin64c' if Redmine::Platform.mswin?) ||
       'gs'
     ).freeze
-    ALLOWED_TYPES = %w(image/bmp image/gif image/jpeg image/png image/webp application/pdf)
+    ALLOWED_TYPES = %w(image/bmp image/gif image/jpeg image/png application/pdf)
 
     # Generates a thumbnail for the source image to target
     def self.generate(source, target, size, is_pdf = false)
@@ -43,7 +43,9 @@ module Redmine
         return nil if is_pdf && mime_type != "application/pdf"
 
         directory = File.dirname(target)
-        FileUtils.mkdir_p directory
+        unless File.exist?(directory)
+          FileUtils.mkdir_p directory
+        end
         size_option = "#{size}x#{size}>"
 
         if is_pdf

@@ -21,7 +21,6 @@ module Redmine
   module Twofa
     class Base
       def self.inherited(child)
-        super
         # require-ing a Base subclass will register it as a 2FA scheme
         Redmine::Twofa.register_scheme(scheme_name(child), child)
       end

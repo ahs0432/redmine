@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-require_relative '../test_helper'
+require File.expand_path('../../test_helper', __FILE__)
 
 class IssuePriorityTest < ActiveSupport::TestCase
   fixtures :enumerations, :issues
@@ -49,7 +49,7 @@ class IssuePriorityTest < ActiveSupport::TestCase
   end
 
   def test_should_be_an_enumeration
-    assert IssuePriority <= Enumeration
+    assert IssuePriority.ancestors.include?(Enumeration)
   end
 
   def test_objects_count

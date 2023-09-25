@@ -72,10 +72,9 @@ module Redmine
         def initialize(url, root_url=nil, login=nil, password=nil,
                        path_encoding=nil)
           @url = url
-          @login = login if login.present?
+          @login = login if login && !login.empty?
           @password = (password || "") if @login
-          @root_url = root_url.presence || retrieve_root_url
-          @path_encoding = path_encoding.presence || 'UTF-8'
+          @root_url = root_url.blank? ? retrieve_root_url : root_url
         end
 
         def adapter_name
@@ -159,18 +158,12 @@ module Redmine
 
         def with_leading_slash(path)
           path ||= ''
-          path.start_with?('/') ? path : "/#{path}"
-        end
-
-        def with_trailing_slash(path)
-          path ||= ''
-          path.end_with?('/') ? path : "#{path}/"
+          (path[0, 1]!="/") ? "/#{path}" : path
         end
 
         def with_trailling_slash(path)
-          ActiveSupport::Deprecation.warn 'Redmine::Scm::Adapters::AbstractAdapter#with_trailling_slash is ' \
-           'deprecated and will be removed in Redmine 6.0. Please use #with_trailing_slash instead.'
-          with_trailing_slash(path)
+          path ||= ''
+          (path[-1, 1] == "/") ? path : "#{path}/"
         end
 
         def without_leading_slash(path)
@@ -178,15 +171,9 @@ module Redmine
           path.gsub(%r{^/+}, '')
         end
 
-        def without_trailing_slash(path)
-          path ||= ''
-          path.end_with?('/') ? path[0..-2] : path
-        end
-
         def without_trailling_slash(path)
-          ActiveSupport::Deprecation.warn 'Redmine::Scm::Adapters::AbstractAdapter#without_trailling_slash is ' \
-          'deprecated and will be removed in Redmine 6.0. Please use #without_trailing_slash instead.'
-          without_trailing_slash(path)
+          path ||= ''
+          (path[-1, 1] == "/") ? path[0..-2] : path
         end
 
         def valid_name?(name)
@@ -268,7 +255,7 @@ module Redmine
               IO.popen(cmd, mode) do |io|
                 io.set_encoding("ASCII-8BIT") if io.respond_to?(:set_encoding)
                 io.close_write unless options[:write_stdin]
-                yield(io) if block
+                yield(io) if block_given?
               end
             rescue => e
               msg = strip_credential(e.message)
@@ -330,7 +317,7 @@ module Redmine
         end
 
         def revisions
-          revisions ||= Revisions.new(filter_map{|entry| entry.lastrev})
+          revisions ||= Revisions.new(collect{|entry| entry.lastrev}.compact)
         end
       end
 
@@ -423,18 +410,16 @@ module Redmine
       end
 
       class Annotate
-        attr_reader :lines, :revisions, :previous_annotations
+        attr_reader :lines, :revisions
 
         def initialize
           @lines = []
           @revisions = []
-          @previous_annotations = []
         end
 
-        def add_line(line, revision, previous=nil)
+        def add_line(line, revision)
           @lines << line
           @revisions << revision
-          @previous_annotations << previous
         end
 
         def content

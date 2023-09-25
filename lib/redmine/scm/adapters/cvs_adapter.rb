@@ -63,10 +63,16 @@ module Redmine
         #  password -> unnecessary too
         def initialize(url, root_url=nil, login=nil, password=nil,
                        path_encoding=nil)
+          @path_encoding = path_encoding.presence || 'UTF-8'
+          @url      = url
           # TODO: better Exception here (IllegalArgumentException)
           raise CommandFailed if root_url.blank?
 
-          super
+          @root_url  = root_url
+
+          # These are unused.
+          @login    = login if login && !login.empty?
+          @password = (password || "") if @login
         end
 
         def path_encoding
@@ -173,7 +179,7 @@ module Redmine
             file_state = nil
             branch_map = nil
             io.each_line() do |line|
-              if state != "revision" && /^#{ENDLOG}/o.match?(line)
+              if state != "revision" && /^#{ENDLOG}/.match?(line)
                 commit_log = ""
                 revision   = nil
                 state      = "entry_start"
@@ -188,7 +194,7 @@ module Redmine
                   entry_headRev = $1
                 elsif /^symbolic names:/.match?(line)
                   state = "symbolic"
-                elsif /^#{STARTLOG}/o.match?(line)
+                elsif /^#{STARTLOG}/.match?(line)
                   commit_log = ""
                   state      = "revision"
                 end
@@ -201,15 +207,15 @@ module Redmine
                   next
                 end
               elsif state == "tags"
-                if /^#{STARTLOG}/o.match?(line)
+                if /^#{STARTLOG}/.match?(line)
                   commit_log = ""
                   state = "revision"
-                elsif /^#{ENDLOG}/o.match?(line)
+                elsif /^#{ENDLOG}/.match?(line)
                   state = "head"
                 end
                 next
               elsif state == "revision"
-                if /^#{ENDLOG}/o =~ line || /^#{STARTLOG}/o =~ line
+                if /^#{ENDLOG}/ =~ line || /^#{STARTLOG}/ =~ line
                   if revision
                     revHelper = CvsRevisionHelper.new(revision)
                     revBranch = "HEAD"
@@ -239,7 +245,7 @@ module Redmine
                   end
                   commit_log = ""
                   revision   = nil
-                  if /^#{ENDLOG}/o.match?(line)
+                  if /^#{ENDLOG}/.match?(line)
                     state = "entry_start"
                   end
                   next
@@ -364,7 +370,7 @@ module Redmine
         end
 
         def normalize_cvs_path(path)
-          normalize_path(path.gsub("Attic/",''))
+          normalize_path(path.gsub(/Attic\//,''))
         end
 
         def normalize_path(path)

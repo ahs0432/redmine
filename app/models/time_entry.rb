@@ -107,7 +107,9 @@ class TimeEntry < ActiveRecord::Base
   def initialize(attributes=nil, *args)
     super
     if new_record? && self.activity.nil?
-      self.activity_id = TimeEntryActivity.default_activity_id(User.current, self.project)
+      if default_activity = TimeEntryActivity.default(self.project)
+        self.activity_id = default_activity.id
+      end
       self.hours = nil if hours == 0
     end
   end

@@ -61,8 +61,6 @@ module Redmine
       end
 
       def <=>(theme)
-        return nil unless theme.is_a?(Theme)
-
         name <=> theme.name
       end
 

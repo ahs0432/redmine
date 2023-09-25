@@ -74,11 +74,11 @@ class IssuesController < ApplicationController
         format.csv do
           @issues = @query.issues(:limit => Setting.issues_export_limit.to_i)
           send_data(query_to_csv(@issues, @query, params[:csv]),
-                    :type => 'text/csv; header=present', :filename => "#{filename_for_export(@query, 'issues')}.csv")
+                    :type => 'text/csv; header=present', :filename => 'issues.csv')
         end
         format.pdf do
           @issues = @query.issues(:limit => Setting.issues_export_limit.to_i)
-          send_file_headers! :type => 'application/pdf', :filename => "#{filename_for_export(@query, 'issues')}.pdf"
+          send_file_headers! :type => 'application/pdf', :filename => 'issues.pdf'
         end
       end
     else
@@ -94,7 +94,7 @@ class IssuesController < ApplicationController
 
   def show
     @journals = @issue.visible_journals_with_index
-    @has_changesets = @issue.changesets.visible.preload(:repository, :user).exists? unless api_request?
+    @has_changesets = @issue.changesets.visible.preload(:repository, :user).exists?
     @relations =
       @issue.relations.
         select do |r|
@@ -119,10 +119,8 @@ class IssuesController < ApplicationController
       end
       format.api do
         @allowed_statuses = @issue.new_statuses_allowed_to(User.current)
-        if include_in_api_response?('changesets')
-          @changesets = @issue.changesets.visible.preload(:repository, :user).to_a
-          @changesets.reverse! if User.current.wants_comments_in_reverse_order?
-        end
+        @changesets = @issue.changesets.visible.preload(:repository, :user).to_a
+        @changesets.reverse! if User.current.wants_comments_in_reverse_order?
       end
       format.atom do
         render :template => 'journals/index', :layout => false,

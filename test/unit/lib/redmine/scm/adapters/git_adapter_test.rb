@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-require_relative '../../../../../test_helper'
+require File.expand_path('../../../../../../test_helper', __FILE__)
 
 class GitAdapterTest < ActiveSupport::TestCase
   REPOSITORY_PATH = Rails.root.join('tmp/test/git_repository').to_s
@@ -437,10 +437,6 @@ class GitAdapterTest < ActiveSupport::TestCase
       assert_equal "7234cb2750b63f47bff735edc50a1c0a433c2518",
                    annotate.revisions[4].identifier
       assert_equal "jsmith", annotate.revisions[4].author
-      assert_equal "4a79347ea4b7184938d9bbea0fd421a6079f71bb",
-                   annotate.previous_annotations[22].split[0]
-      assert_equal "sources/watchers_controller.rb",
-                   annotate.previous_annotations[22].split[1]
     end
 
     def test_annotate_latin_1_identifier
@@ -614,7 +610,7 @@ class GitAdapterTest < ActiveSupport::TestCase
     end
 
     def test_entry
-      entry = @adapter.entry
+      entry = @adapter.entry()
       assert_equal "", entry.path
       assert_equal "dir", entry.kind
       entry = @adapter.entry('')

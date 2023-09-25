@@ -76,7 +76,6 @@ class Mailer < ActionMailer::Base
                     'Issue-Id' => issue.id,
                     'Issue-Author' => issue.author.login,
                     'Issue-Assignee' => assignee_for_header(issue)
-    redmine_headers 'Issue-Priority' => issue.priority.name if issue.priority
     message_id issue
     references issue
     @author = issue.author
@@ -109,7 +108,6 @@ class Mailer < ActionMailer::Base
                     'Issue-Id' => issue.id,
                     'Issue-Author' => issue.author.login,
                     'Issue-Assignee' => assignee_for_header(issue)
-    redmine_headers 'Issue-Priority' => issue.priority.name if issue.priority
     message_id journal
     references issue
     @author = journal.user
@@ -705,7 +703,7 @@ class Mailer < ActionMailer::Base
       headers[:references] = @references_objects.collect {|o| "<#{self.class.references_for(o, @user)}>"}.join(' ')
     end
 
-    if block
+    if block_given?
       super headers, &block
     else
       super headers do |format|

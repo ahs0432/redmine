@@ -52,7 +52,6 @@ class QueriesController < ApplicationController
     @query.user = User.current
     @query.project = @project
     @query.build_from_params(params)
-    render :layout => 'admin' if params[:admin_projects]
   end
 
   def create
@@ -63,14 +62,13 @@ class QueriesController < ApplicationController
 
     if @query.save
       flash[:notice] = l(:notice_successful_create)
-      redirect_to_items(:query_id => @query, :admin_projects => params[:admin_projects])
+      redirect_to_items(:query_id => @query)
     else
       render :action => 'new', :layout => !request.xhr?
     end
   end
 
   def edit
-    render :layout => 'admin' if params[:admin_projects]
   end
 
   def update
@@ -78,7 +76,7 @@ class QueriesController < ApplicationController
 
     if @query.save
       flash[:notice] = l(:notice_successful_update)
-      redirect_to_items(:query_id => @query, :admin_projects => params[:admin_projects])
+      redirect_to_items(:query_id => @query)
     else
       render :action => 'edit'
     end
@@ -112,15 +110,10 @@ class QueriesController < ApplicationController
     @query ? @query.queried_class.to_s.underscore.pluralize.to_sym : nil
   end
 
-  def current_menu(project)
-    super if params[:admin_projects].nil?
-  end
-
   private
 
   def find_query
     @query = Query.find(params[:id])
-    @query.admin_projects = params[:admin_projects] if @query.is_a?(ProjectQuery)
     @project = @query.project
     render_403 unless @query.editable_by?(User.current)
   rescue ActiveRecord::RecordNotFound
@@ -170,15 +163,7 @@ class QueriesController < ApplicationController
   end
 
   def redirect_to_project_query(options)
-    if params[:admin_projects]
-      redirect_to admin_projects_path(options)
-    else
-      redirect_to projects_path(options)
-    end
-  end
-
-  def redirect_to_user_query(options)
-    redirect_to users_path(options)
+    redirect_to projects_path(options)
   end
 
   # Returns the Query subclass, IssueQuery by default

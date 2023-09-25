@@ -20,14 +20,12 @@
 class WelcomeController < ApplicationController
   self.main_menu = false
 
-  skip_before_action :check_if_login_required, only: [:robots]
-
   def index
     @news = News.latest User.current
   end
 
   def robots
-    @projects = Project.visible(User.anonymous) unless Setting.login_required?
+    @projects = Project.all_public.active
     render :layout => false, :content_type => 'text/plain'
   end
 end

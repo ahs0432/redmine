@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-require_relative '../../../../../test_helper'
+require File.expand_path('../../../../../../test_helper', __FILE__)
 
 class MercurialAdapterTest < ActiveSupport::TestCase
   HELPERS_DIR        = Redmine::Scm::Adapters::MercurialAdapter::HELPERS_DIR
@@ -279,7 +279,7 @@ class MercurialAdapterTest < ActiveSupport::TestCase
     end
 
     def test_entry
-      entry = @adapter.entry
+      entry = @adapter.entry()
       assert_equal "", entry.path
       assert_equal "dir", entry.kind
       entry = @adapter.entry('')

@@ -23,16 +23,16 @@ class ProjectsController < ApplicationController
   menu_item :projects, :only => [:index, :new, :copy, :create]
 
   before_action :find_project,
-                :except => [:index, :autocomplete, :list, :new, :create, :copy, :bulk_destroy]
+                :except => [:index, :autocomplete, :list, :new, :create, :copy]
   before_action :authorize,
                 :except => [:index, :autocomplete, :list, :new, :create, :copy,
                             :archive, :unarchive,
-                            :destroy, :bulk_destroy]
+                            :destroy]
   before_action :authorize_global, :only => [:new, :create]
-  before_action :require_admin, :only => [:copy, :archive, :unarchive, :bulk_destroy]
+  before_action :require_admin, :only => [:copy, :archive, :unarchive]
   accept_atom_auth :index
   accept_api_auth :index, :show, :create, :update, :destroy, :archive, :unarchive, :close, :reopen
-  require_sudo_mode :destroy, :bulk_destroy
+  require_sudo_mode :destroy
 
   helper :custom_fields
   helper :issues
@@ -300,8 +300,7 @@ class ProjectsController < ApplicationController
 
     @project_to_destroy = @project
     if api_request? || params[:confirm] == @project_to_destroy.identifier
-      DestroyProjectJob.schedule(@project_to_destroy)
-      flash[:notice] = l(:notice_successful_delete)
+      @project_to_destroy.destroy
       respond_to do |format|
         format.html do
           redirect_to(
@@ -313,23 +312,6 @@ class ProjectsController < ApplicationController
     end
     # hide project in layout
     @project = nil
-  end
-
-  # Delete selected projects
-  def bulk_destroy
-    @projects = Project.where(id: params[:ids]).
-      where.not(status: Project::STATUS_SCHEDULED_FOR_DELETION).to_a
-
-    if @projects.empty?
-      render_404
-      return
-    end
-
-    if params[:confirm] == I18n.t(:general_text_Yes)
-      DestroyProjectsJob.schedule @projects
-      flash[:notice] = l(:notice_successful_delete)
-      redirect_to admin_projects_path
-    end
   end
 
   private

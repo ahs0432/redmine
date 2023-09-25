@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-require_relative '../test_helper'
+require File.expand_path('../../test_helper', __FILE__)
 
 class ProjectCopyTest < ActiveSupport::TestCase
   fixtures :projects, :trackers, :issue_statuses, :issues,
@@ -76,7 +76,7 @@ class ProjectCopyTest < ActiveSupport::TestCase
     assert_equal @source_project.issues.size, @project.issues.size
     @project.issues.each do |issue|
       assert issue.valid?
-      assert issue.assigned_to.present?
+      assert ! issue.assigned_to.blank?
       assert_equal @project, issue.project
     end
 

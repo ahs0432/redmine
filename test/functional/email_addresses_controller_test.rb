@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-require_relative '../test_helper'
+require File.expand_path('../../test_helper', __FILE__)
 
 class EmailAddressesControllerTest < Redmine::ControllerTest
   fixtures :users, :email_addresses
@@ -131,7 +131,7 @@ class EmailAddressesControllerTest < Redmine::ControllerTest
           }
         )
         assert_response :success
-        assert_select_error 'Email contains a domain not allowed (black.example)'
+        assert_select_error 'Email is invalid'
       end
     end
 
@@ -147,7 +147,7 @@ class EmailAddressesControllerTest < Redmine::ControllerTest
           }
         )
         assert_response :success
-        assert_select_error 'Email contains a domain not allowed (example.fr)'
+        assert_select_error 'Email is invalid'
       end
     end
   end

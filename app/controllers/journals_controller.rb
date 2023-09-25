@@ -91,9 +91,7 @@ class JournalsController < ApplicationController
 
   def update
     (render_403; return false) unless @journal.editable_by?(User.current)
-    journal_attributes = params[:journal]
-    journal_attributes[:updated_by] = User.current
-    @journal.safe_attributes = journal_attributes
+    @journal.safe_attributes = params[:journal]
     @journal.save
     @journal.destroy if @journal.details.empty? && @journal.notes.blank?
     call_hook(:controller_journals_edit_post, {:journal => @journal, :params => params})

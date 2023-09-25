@@ -313,7 +313,7 @@ class RedCloth3 < String
         retrieve text
 
         text.gsub!( /<\/?notextile>/, '' )
-        text.gsub!( "x%x%", '&#38;' )
+        text.gsub!( /x%x%/, '&#38;' )
         clean_html text if filter_html
         text.strip!
         text
@@ -498,7 +498,7 @@ class RedCloth3 < String
           c.starts_with?('wiki-class-') ? c : "wiki-class-#{c}"
         end.join(' ') if cls
 
-        id = "wiki-id-#{id}" if id && !id.start_with?('wiki-id-')
+        id = id.starts_with?('wiki-id-') ? id : "wiki-id-#{id}" if id
 
         atts = +''
         atts << " style=\"#{style.join}\"" unless style.empty?
@@ -532,10 +532,10 @@ class RedCloth3 < String
             rows = []
             fullrow.gsub!(/([^|\s])\s*\n/, "\\1<br />")
             fullrow.each_line do |row|
-                ratts, row = pba( $1, 'tr' ), $2 if row =~ /^(#{A}#{C}\. )(.*)/mo
+                ratts, row = pba( $1, 'tr' ), $2 if row =~ /^(#{A}#{C}\. )(.*)/m
                 cells = []
                 # the regexp prevents wiki links with a | from being cut as cells
-                row.scan(/\|(_?#{S}#{A}#{C}\. ?)?((\[\[[^|\]]*\|[^|\]]*\]\]|[^|])*?)(?=\|)/o) do |modifiers, cell|
+                row.scan(/\|(_?#{S}#{A}#{C}\. ?)?((\[\[[^|\]]*\|[^|\]]*\]\]|[^|])*?)(?=\|)/) do |modifiers, cell|
                     ctyp = 'd'
                     ctyp = 'h' if modifiers && modifiers =~ /^_/
 
@@ -558,7 +558,7 @@ class RedCloth3 < String
     # Parses Textile lists and generates HTML
     def block_textile_lists( text )
         text.gsub!( LISTS_RE ) do |match|
-            lines = match.split( "\n" )
+            lines = match.split( /\n/ )
             last_line = -1
             depth = []
             lines.each_with_index do |line, line_id|
@@ -603,7 +603,7 @@ class RedCloth3 < String
 
     def block_textile_quotes( text )
       text.gsub!( QUOTES_RE ) do |match|
-        lines = match.split( "\n" )
+        lines = match.split( /\n/ )
         quotes = +''
         indent = 0
         lines.each do |line|
@@ -791,7 +791,7 @@ class RedCloth3 < String
                 when :limit
                     sta,oqs,qtag,content,oqa = $~[1..6]
                     atts = nil
-                    if content =~ /^(#{C})(.+)$/o
+                    if content =~ /^(#{C})(.+)$/
                       atts, content = $~[1..2]
                     end
                 else
@@ -841,7 +841,7 @@ class RedCloth3 < String
             end
 
             url = htmlesc(url.dup)
-            next all unless uri_with_link_safe_scheme?(url)
+            next all if url.downcase.start_with?('javascript:')
 
             atts = pba(atts)
             atts = +" href=\"#{url}#{slash}\"#{atts}"
@@ -965,7 +965,7 @@ class RedCloth3 < String
             next m unless uri_with_safe_scheme?(url.partition('?').first)
             if href
               href = htmlesc(href.dup)
-              next m unless uri_with_link_safe_scheme?(href)
+              next m if href.downcase.start_with?('javascript:')
             end
 
             out = +''
@@ -1016,9 +1016,9 @@ class RedCloth3 < String
 
     def clean_white_space( text )
         # normalize line breaks
-        text.gsub!( "\r\n", "\n" )
+        text.gsub!( /\r\n/, "\n" )
         text.tr!( "\r", "\n" )
-        text.gsub!( "\t", '    ' )
+        text.gsub!( /\t/, '    ' )
         text.gsub!( /^ +$/, '' )
         text.gsub!( /\n{3,}/, "\n\n" )
         text.gsub!( /"$/, "\" " )
@@ -1100,9 +1100,9 @@ class RedCloth3 < String
                         ###   and it breaks following lines
                         htmlesc( aftertag, :NoQuotes ) if aftertag && escape_aftertag && !first.match(/<code\s+class="(\w+)">/)
                         line = +"<redpre##{@pre_list.length}>"
-                        first =~ /<#{OFFTAGS}([^>]*)>/o
+                        first.match(/<#{OFFTAGS}([^>]*)>/)
                         tag = $1
-                        $2.to_s =~ /(class\=("[^"]+"|'[^']+'))/i
+                        $2.to_s.match(/(class\=("[^"]+"|'[^']+'))/i)
                         tag << " #{$1}" if $1 && tag == 'code'
                         @pre_list << +"<#{tag}>#{aftertag}"
                     end
@@ -1184,7 +1184,7 @@ class RedCloth3 < String
     }
 
     def clean_html( text, tags = BASIC_TAGS )
-        text.gsub!( "<![CDATA[", '' )
+        text.gsub!( /<!\[CDATA\[/, '' )
         text.gsub!( /<(\/*)(\w+)([^>]*)>/ ) do
             raw = $~
             tag = raw[2].downcase
@@ -1214,9 +1214,9 @@ class RedCloth3 < String
             all, tag, close = $1, $2, $3
 
             if close.present? && (ALLOWED_TAGS.include?(tag) || (tag =~ /\Aredpre#\d+\z/))
-                "<#{htmlesc all}#{close}"
+                "<#{all}#{close}"
             else
-                "&lt;#{htmlesc all}#{'&gt;' unless close.blank?}"
+                "&lt;#{all}#{'&gt;' unless close.blank?}"
             end
         end
     end

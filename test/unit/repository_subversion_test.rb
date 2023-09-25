@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-require_relative '../test_helper'
+require File.expand_path('../../test_helper', __FILE__)
 
 class RepositorySubversionTest < ActiveSupport::TestCase
   fixtures :projects, :repositories, :enabled_modules, :users, :roles
@@ -66,11 +66,11 @@ class RepositorySubversionTest < ActiveSupport::TestCase
     Redmine::Configuration.with 'scm_subversion_path_regexp' => 'file:///svnpath/[a-z]+' do
       repo = Repository::Subversion.new(:project => @project, :identifier => 'test')
       repo.url = 'http://foo'
-      assert repo.invalid?
+      assert !repo.valid?
       assert repo.errors[:url].present?
 
       repo.url = 'file:///svnpath/foo/bar'
-      assert repo.invalid?
+      assert !repo.valid?
       assert repo.errors[:url].present?
 
       repo.url = 'file:///svnpath/foo'
@@ -82,7 +82,7 @@ class RepositorySubversionTest < ActiveSupport::TestCase
     Redmine::Configuration.with 'scm_subversion_path_regexp' => 'file:///svnpath/%project%(\.[a-z]+)?' do
       repo = Repository::Subversion.new(:project => @project, :identifier => 'test')
       repo.url = 'file:///svnpath/invalid'
-      assert repo.invalid?
+      assert !repo.valid?
       assert repo.errors[:url].present?
 
       repo.url = 'file:///svnpath/subproject1'

@@ -25,7 +25,7 @@ module Redmine
     module CommonMark
       # configuration of the rendering pipeline
       PIPELINE_CONFIG = {
-        # https://github.com/gjtorikian/commonmarker#extension-options
+        # https://github.com/gjtorikian/commonmarker#extensions
         commonmarker_extensions: [
           :table,
           :strikethrough,
@@ -61,13 +61,7 @@ module Redmine
         TaskList::Filter
       ], PIPELINE_CONFIG
 
-      class Formatter
-        include Redmine::WikiFormatting::SectionHelper
-
-        def initialize(text)
-          @text = text
-        end
-
+      class Formatter < Redmine::WikiFormatting::Markdown::Formatter
         def to_html(*args)
           result = MarkdownPipeline.call @text
           result[:output].to_s

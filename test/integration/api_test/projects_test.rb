@@ -17,10 +17,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-require_relative '../../test_helper'
+require File.expand_path('../../../test_helper', __FILE__)
 
 class Redmine::ApiTest::ProjectsTest < Redmine::ApiTest::Base
-  include ActiveJob::TestHelper
   fixtures :projects, :versions, :users, :roles, :members, :member_roles, :issues, :journals, :journal_details,
            :trackers, :projects_trackers, :issue_statuses, :enabled_modules, :enumerations, :boards, :messages,
            :attachments, :custom_fields, :custom_values, :custom_fields_projects, :time_entries, :issue_categories,
@@ -86,16 +85,11 @@ class Redmine::ApiTest::ProjectsTest < Redmine::ApiTest::Base
   end
 
   test "GET /projects.xml with include=issue_custom_fields should return custom fields" do
-    IssueCustomField.find(6).update_attribute :is_for_all, true
-    IssueCustomField.find(8).update_attribute :is_for_all, false
     get '/projects.xml?include=issue_custom_fields'
     assert_response :success
     assert_equal 'application/xml', @response.media_type
 
     assert_select 'issue_custom_fields[type=array] custom_field[name="Project 1 cf"]'
-    # Custom field for all projects
-    assert_select 'issue_custom_fields[type=array] custom_field[id="6"]'
-    assert_select 'issue_custom_fields[type=array] custom_field[id="8"]', 0
   end
 
   test "GET /projects/:id.xml should return the project" do
@@ -367,16 +361,13 @@ class Redmine::ApiTest::ProjectsTest < Redmine::ApiTest::Base
     assert_select 'errors error', :text => "Name cannot be blank"
   end
 
-  test "DELETE /projects/:id.xml should schedule deletion of the project" do
-    assert_no_difference('Project.count') do
+  test "DELETE /projects/:id.xml should delete the project" do
+    assert_difference('Project.count', -1) do
       delete '/projects/2.xml', :headers => credentials('admin')
     end
-    assert_enqueued_with(job: DestroyProjectJob,
-                         args: ->(job_args){ job_args[0] == 2})
     assert_response :no_content
     assert_equal '', @response.body
-    assert p = Project.find_by_id(2)
-    assert_equal Project::STATUS_SCHEDULED_FOR_DELETION, p.status
+    assert_nil Project.find_by_id(2)
   end
 
   test "PUT /projects/:id/archive.xml should archive project" do

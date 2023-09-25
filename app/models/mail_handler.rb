@@ -24,9 +24,7 @@ class MailHandler < ActionMailer::Base
   class UnauthorizedAction < StandardError; end
   class NotAllowedInProject < UnauthorizedAction; end
   class InsufficientPermissions < UnauthorizedAction; end
-  class LockedTopic < UnauthorizedAction; end
   class MissingInformation < StandardError; end
-  class MissingContainer < StandardError; end
 
   attr_reader :email, :user, :handler_options
 
@@ -174,9 +172,6 @@ class MailHandler < ActionMailer::Base
   rescue MissingInformation => e
     logger&.error "MailHandler: missing information from #{user}: #{e.message}"
     false
-  rescue MissingContainer => e
-    logger&.error "MailHandler: reply to nonexistant object from #{user}: #{e.message}"
-    false
   rescue UnauthorizedAction => e
     logger&.error "MailHandler: unauthorized attempt from #{user}: #{e.message}"
     false
@@ -230,7 +225,8 @@ class MailHandler < ActionMailer::Base
   def receive_issue_reply(issue_id, from_journal=nil)
     issue = Issue.find_by(:id => issue_id)
     if issue.nil?
-      raise MissingContainer, "reply to nonexistant issue [##{issue_id}]"
+      logger&.info "MailHandler: ignoring reply from [#{email.from.first}] to a nonexistent issue"
+      return nil
     end
 
     # Never receive emails to projects where adding issue notes is not possible
@@ -267,14 +263,16 @@ class MailHandler < ActionMailer::Base
   # Reply will be added to the issue
   def receive_journal_reply(journal_id)
     journal = Journal.find_by(:id => journal_id)
+    if journal.nil?
+      logger&.info "MailHandler: ignoring reply from [#{email.from.first}] to a nonexistent journal"
+      return nil
+    end
 
-    if journal && journal.journalized_type == 'Issue'
+    if journal.journalized_type == 'Issue'
       receive_issue_reply(journal.journalized_id, journal)
-    elsif m = email.subject.to_s.match(ISSUE_REPLY_SUBJECT_RE)
-      logger&.info "MailHandler: reply to a nonexistant journal, calling receive_issue_reply with issue from subject"
-      receive_issue_reply(m[1].to_i)
     else
-      raise MissingContainer, "reply to nonexistant journal [#{journal_id}]"
+      logger&.info "MailHandler: ignoring reply from [#{email.from.first}] to a journal whose journalized_type is not Issue"
+      return nil
     end
   end
 
@@ -282,7 +280,8 @@ class MailHandler < ActionMailer::Base
   def receive_message_reply(message_id)
     message = Message.find_by(:id => message_id)&.root
     if message.nil?
-      raise MissingContainer, "reply to nonexistant message [#{message_id}]"
+      logger&.info "MailHandler: ignoring reply from [#{email.from.first}] to a nonexistent message"
+      return nil
     end
 
     # Never receive emails to projects where adding messages is not possible
@@ -302,42 +301,7 @@ class MailHandler < ActionMailer::Base
       add_attachments(reply)
       reply
     else
-      raise LockedTopic, "ignoring reply to a locked message [#{message.id} #{message.subject}]"
-    end
-  end
-
-  # Receives a reply to a news entry
-  def receive_news_reply(news_id)
-    news = News.find_by_id(news_id)
-    if news.nil?
-      raise MissingContainer, "reply to nonexistant news [#{news_id}]"
-    end
-
-    # Never receive emails to projects where adding news comments is not possible
-    project = news.project
-    raise NotAllowedInProject, "not possible to add news comments to project [#{project.name}]" unless project.allows_to?(:comment_news)
-
-    unless handler_options[:no_permission_check]
-      unless news.commentable?(user)
-        raise InsufficientPermissions, "not allowed to comment on news item [#{news.id} #{news.title}]"
-      end
-    end
-
-    comment = news.comments.new
-    comment.author = user
-    comment.comments = cleaned_up_text_body
-    comment.save!
-    comment
-  end
-
-  # Receives a reply to a comment to a news entry
-  def receive_comment_reply(comment_id)
-    comment = Comment.find_by_id(comment_id)
-
-    if comment && comment.commented_type == 'News'
-      receive_news_reply(comment.commented.id)
-    else
-      raise MissingContainer, "reply to nonexistant comment [#{comment_id}]"
+      logger&.info "MailHandler: ignoring reply from [#{email.from.first}] to a locked topic"
     end
   end
 
@@ -402,7 +366,7 @@ class MailHandler < ActionMailer::Base
           end
         if override && (v = extract_keyword!(cleaned_up_text_body, attr, options[:format]))
           v
-        elsif handler_options[:issue][attr].present?
+        elsif !handler_options[:issue][attr].blank?
           handler_options[:issue][attr]
         end
       end
@@ -559,7 +523,12 @@ class MailHandler < ActionMailer::Base
       part.attachment?
     end
     parts.map do |p|
-      body_charset = Mail::Utilities.pick_encoding(p.charset).to_s
+      body_charset =
+        if Mail::RubyVer.respond_to?(:pick_encoding)
+          Mail::RubyVer.pick_encoding(p.charset).to_s
+        else
+          p.charset
+        end
       body = Redmine::CodesetUtil.to_utf8(p.body.decoded, body_charset)
       # convert html parts to text
       p.mime_type == 'text/html' ? self.class.html_body_to_text(body) : self.class.plain_text_body_to_text(body)

@@ -26,24 +26,11 @@ module Redmine
         include ActionView::Helpers::TagHelper
         include Redmine::Helpers::URL
 
-        def autolink(link, link_type)
-          if link_type == :email
-            link("mailto:#{link}", nil, link) || CGI.escapeHTML(link)
-          else
-            content = link
-            # Pretty printing: if we get an email address as an actual URI, e.g.
-            # `mailto:foo@bar.com`, we don't want to print the `mailto:` prefix
-            content = link[7..-1] if link.start_with?('mailto:')
-
-            link(link, nil, content) || CGI.escapeHTML(link)
-          end
-        end
-
         def link(link, title, content)
-          return nil unless uri_with_link_safe_scheme?(link)
+          return nil unless uri_with_safe_scheme?(link)
 
           css = nil
-          unless link&.starts_with?('/') || link&.starts_with?('mailto:')
+          unless link && link.starts_with?('/')
             css = 'external'
           end
           content_tag('a', content.to_s.html_safe, :href => link, :title => title, :class => css)
@@ -70,7 +57,6 @@ module Redmine
 
       class Formatter
         include Redmine::WikiFormatting::LinksHelper
-        include Redmine::WikiFormatting::SectionHelper
         alias :inline_restore_redmine_links :restore_redmine_links
 
         def initialize(text)
@@ -81,6 +67,59 @@ module Redmine
           html = formatter.render(@text)
           html = inline_restore_redmine_links(html)
           html
+        end
+
+        def get_section(index)
+          section = extract_sections(index)[1]
+          hash = Digest::MD5.hexdigest(section)
+          return section, hash
+        end
+
+        def update_section(index, update, hash=nil)
+          t = extract_sections(index)
+          if hash.present? && hash != Digest::MD5.hexdigest(t[1])
+            raise Redmine::WikiFormatting::StaleSectionError
+          end
+
+          t[1] = update unless t[1].blank?
+          t.reject(&:blank?).join "\n\n"
+        end
+
+        def extract_sections(index)
+          sections = [+'', +'', +'']
+          offset = 0
+          i = 0
+          l = 1
+          inside_pre = false
+          @text.split(/(^(?:\S+\r?\n\r?(?:\=+|\-+)|#+.+|(?:~~~|```).*)\s*$)/).each do |part|
+            level = nil
+            if part =~ /\A(~{3,}|`{3,})(\s*\S+)?\s*$/
+              if !inside_pre
+                inside_pre = true
+              elsif !$2
+                inside_pre = false
+              end
+            elsif inside_pre
+              # nop
+            elsif part =~ /\A(#+).+/
+              level = $1.size
+            elsif part =~ /\A.+\r?\n\r?(\=+|\-+)\s*$/
+              level = $1.include?('=') ? 1 : 2
+            end
+            if level
+              i += 1
+              if offset == 0 && i == index
+                # entering the requested section
+                offset = 1
+                l = level
+              elsif offset == 1 && i > index && level <= l
+                # leaving the requested section
+                offset = 2
+              end
+            end
+            sections[offset] << part
+          end
+          sections.map(&:strip)
         end
 
         private

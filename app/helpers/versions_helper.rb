@@ -18,7 +18,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 module VersionsHelper
-  include Redmine::Export::Text::VersionsTextHelper
 
   def version_anchor(version)
     if @project == version.project
@@ -76,7 +75,7 @@ module VersionsHelper
       sorted_keys.collect do |k|
         {:group => k, :total => h[k][0], :open => h[k][1], :closed => (h[k][0] - h[k][1])}
       end
-    max = counts.pluck(:total).max
+    max = counts.collect {|c| c[:total]}.max
     render :partial => 'issue_counts', :locals => {:version => version, :criteria => criteria, :counts => counts, :max => max}
   end
 

@@ -84,7 +84,7 @@ module Redmine
         #     end
         #   end
         def register(&block)
-          class_eval(&block) if block
+          class_eval(&block) if block_given?
         end
 
         # Defines a new macro with the given name, options and block.
@@ -154,7 +154,7 @@ module Redmine
           unless /\A\w+\z/.match?(name.to_s)
             raise "Invalid macro name: #{name} (only 0-9, A-Z, a-z and _ characters are accepted)"
           end
-          unless block
+          unless block_given?
             raise "Can not create a macro without a block!"
           end
 
@@ -281,7 +281,7 @@ module Redmine
 
         container = obj.is_a?(Journal) ? obj.journalized : obj
         attachments = container.attachments if container.respond_to?(:attachments)
-        if (controller_path == 'previews' || action_name == 'preview') && @attachments.present?
+        if (controller_name == 'previews' || action_name == 'preview') && @attachments.present?
           attachments = (attachments.to_a + @attachments).compact
         end
         if attachments.present? && (attachment = Attachment.latest_attach(attachments, filename))

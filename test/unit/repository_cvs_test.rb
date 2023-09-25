@@ -17,8 +17,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-require_relative '../test_helper'
-
+require File.expand_path('../../test_helper', __FILE__)
+require 'pp'
 class RepositoryCvsTest < ActiveSupport::TestCase
   fixtures :projects
 
@@ -104,7 +104,7 @@ class RepositoryCvsTest < ActiveSupport::TestCase
         :url           => MODULE_NAME
       )
       repo.root_url = '/wrong_path'
-      assert repo.invalid?
+      assert !repo.valid?
       assert repo.errors[:root_url].present?
 
       repo.root_url = '/cvspath/foo'

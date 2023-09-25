@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-require_relative '../test_helper'
+require File.expand_path('../../test_helper', __FILE__)
 
 class IssuesTest < Redmine::IntegrationTest
   fixtures :projects,
@@ -34,8 +34,7 @@ class IssuesTest < Redmine::IntegrationTest
            :custom_fields,
            :custom_values,
            :custom_fields_trackers, :custom_fields_projects,
-           :attachments,
-           :issue_categories
+           :attachments
 
   # create an issue
   def test_add_issue

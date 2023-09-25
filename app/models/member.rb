@@ -81,8 +81,6 @@ class Member < ActiveRecord::Base
   end
 
   def <=>(member)
-    return nil unless member.is_a?(Member)
-
     a, b = roles.sort, member.roles.sort
     if a == b
       if principal
@@ -122,7 +120,8 @@ class Member < ActiveRecord::Base
   def role_inheritance(role)
     member_roles.
       select {|mr| mr.role_id == role.id && mr.inherited_from.present?}.
-      filter_map {|mr| mr.inherited_from_member_role.try(:member)}.
+      map {|mr| mr.inherited_from_member_role.try(:member)}.
+      compact.
       map {|m| m.project == project ? m.principal : m.project}
   end
 
