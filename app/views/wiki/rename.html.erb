@@ -12,7 +12,6 @@
 <% if @page.safe_attribute? 'is_start_page' %>
 <p><%= f.check_box :is_start_page, :label => :field_start_page, :disabled => @page.is_start_page %></p>
 <% end %>
-<p><%= f.check_box :redirect_existing_links %></p>
 <% if @page.safe_attribute? 'wiki_id' %>
 <p><%= f.select :wiki_id, wiki_page_wiki_options_for_select(@page), :label => :label_project %></p>
 <% end %>

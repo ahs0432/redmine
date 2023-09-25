@@ -458,7 +458,9 @@ module ApplicationHelper
           href = "##{page.title}"
         else
           href = {:controller => 'wiki', :action => 'show',
-                  :project_id => page.project, :id => page.title, :version => nil}
+		# Title 미사용으로 변경
+#                  :project_id => page.project, :id => page.title, :version => nil}
+                  :project_id => page.project, :id => page.id, :version => nil}
         end
         content <<
           link_to(

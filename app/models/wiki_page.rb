@@ -53,7 +53,8 @@ class WikiPage < ActiveRecord::Base
 
   validates_presence_of :title
   validates_format_of :title, :with => /\A[^,\.\/\?\;\|\s]*\z/
-  validates_uniqueness_of :title, :scope => :wiki_id, :case_sensitive => false
+  # Title Unique 제거
+#  validates_uniqueness_of :title, :scope => :wiki_id, :case_sensitive => false
   validates_length_of :title, maximum: 255
   validates_associated :content
 
@@ -68,7 +69,9 @@ class WikiPage < ActiveRecord::Base
   # Wiki pages that are protected by default
   DEFAULT_PROTECTED_PAGES = %w(sidebar)
 
-  safe_attributes 'parent_id', 'parent_title', 'title', 'redirect_existing_links', 'wiki_id',
+  # redirect_existing_links 삭제
+#  safe_attributes 'parent_id', 'parent_title', 'title', 'redirect_existing_links', 'wiki_id',
+  safe_attributes 'parent_id', 'parent_title', 'title', 'wiki_id',
                   :if => lambda {|page, user| page.new_record? || user.allowed_to?(:rename_wiki_pages, page.project)}
 
   safe_attributes 'is_start_page',
@@ -89,7 +92,8 @@ class WikiPage < ActiveRecord::Base
   end
 
   def title=(value)
-    value = Wiki.titleize(value)
+    # titleize 미사용
+#    value = Wiki.titleize(value)
     write_attribute(:title, value)
   end
 
@@ -113,23 +117,24 @@ class WikiPage < ActiveRecord::Base
 
   # Manages redirects if page is renamed or moved
   def handle_rename_or_move
-    if !new_record? && (title_changed? || wiki_id_changed?)
-      # Update redirects that point to the old title
-      WikiRedirect.where(:redirects_to => title_was, :redirects_to_wiki_id => wiki_id_was).each do |r|
-        r.redirects_to = title
-        r.redirects_to_wiki_id = wiki_id
-        (r.title == r.redirects_to && r.wiki_id == r.redirects_to_wiki_id) ? r.destroy : r.save
-      end
-      # Remove redirects for the new title
-      WikiRedirect.where(:wiki_id => wiki_id, :title => title).delete_all
-      # Create a redirect to the new title
-      unless redirect_existing_links == "0"
-        WikiRedirect.create(
-          :wiki_id => wiki_id_was, :title => title_was,
-          :redirects_to_wiki_id => wiki_id, :redirects_to => title
-        )
-      end
-    end
+    # Redirect Wiki 기능 삭제
+#    if !new_record? && (title_changed? || wiki_id_changed?)
+#      # Update redirects that point to the old title
+#      WikiRedirect.where(:redirects_to => title_was, :redirects_to_wiki_id => wiki_id_was).each do |r|
+#        r.redirects_to = title
+#        r.redirects_to_wiki_id = wiki_id
+#        (r.title == r.redirects_to && r.wiki_id == r.redirects_to_wiki_id) ? r.destroy : r.save
+#      end
+#      # Remove redirects for the new title
+#      WikiRedirect.where(:wiki_id => wiki_id, :title => title).delete_all
+#      # Create a redirect to the new title
+#      unless redirect_existing_links == "0"
+#        WikiRedirect.create(
+#          :wiki_id => wiki_id_was, :title => title_was,
+#          :redirects_to_wiki_id => wiki_id, :redirects_to => title
+#        )
+#      end
+#    end
     if !new_record? && wiki_id_changed? && parent.present?
       unless parent.wiki_id == wiki_id
         self.parent_id = nil
@@ -140,15 +145,16 @@ class WikiPage < ActiveRecord::Base
 
   # Moves child pages if page was moved
   def handle_children_move
-    if !new_record? && saved_change_to_wiki_id?
-      children.each do |child|
-        child.wiki_id = wiki_id
-        child.redirect_existing_links = redirect_existing_links
-        unless child.save
-          WikiPage.where(:id => child.id).update_all :parent_id => nil
-        end
-      end
-    end
+    # Redirect Wiki 기능 삭제
+#    if !new_record? && saved_change_to_wiki_id?
+#      children.each do |child|
+#        child.wiki_id = wiki_id
+#        child.redirect_existing_links = redirect_existing_links
+#        unless child.save
+#          WikiPage.where(:id => child.id).update_all :parent_id => nil
+#        end
+#      end
+#    end
   end
   private :handle_children_move
 
@@ -236,7 +242,9 @@ class WikiPage < ActiveRecord::Base
 
   def update_wiki_start_page
     if is_start_page
-      wiki.update_attribute :start_page, title
+      # Start Page 업데이트 Title -> id
+#      wiki.update_attribute :start_page, title
+       wiki.update_attribute :start_page, id     
     end
   end
   private :update_wiki_start_page

@@ -63,7 +63,7 @@ class WikiController < ApplicationController
   end
 
   def new
-    @page = WikiPage.new(:wiki => @wiki, :title => params[:title])
+    @page = WikiPage.new(:wiki => @wiki, :title => params[:title], :parent_id => params[:parent])
     unless User.current.allowed_to?(:edit_wiki_pages, @project)
       render_403
       return
@@ -72,7 +72,16 @@ class WikiController < ApplicationController
       @page.title = '' unless editable?
       @page.validate
       if @page.errors[:title].blank?
-        path = project_wiki_page_path(@project, @page.title, :parent => params[:parent])
+        # 신규 페이지 생성 구문
+        @content = @page.content || WikiContent.new(:page => @page)
+        @content.version = 1
+        @content.text = "# " + params[:title].to_s
+        @content.author = User.current
+        
+        @page.save_with_content(@content)
+
+#        path = project_wiki_page_path(@project, @page.title, :parent => params[:parent])
+        path = project_wiki_page_path(@project, @page.id, :parent => params[:parent])
         respond_to do |format|
           format.html {redirect_to path}
           format.js   {render :js => "window.location = #{path.to_json}"}
@@ -83,6 +92,19 @@ class WikiController < ApplicationController
 
   # display a page (in editing mode if it doesn't exist)
   def show
+    # 다른 Project의 경로 참조 방지
+    if @page.nil?
+      @page = @wiki.find_or_new_page("")
+      anchor = @section ? "section-#{@section}" : nil
+
+      if @page.nil?
+        redirect_to project_wiki_page_path(@project, "index")
+      else
+        redirect_to project_wiki_page_path(@project, @page.id, :anchor => anchor)
+      end
+      return
+    end
+
     if params[:version] && !User.current.allowed_to?(:view_wiki_edits, @project)
       deny_access
       return
@@ -186,11 +208,15 @@ class WikiController < ApplicationController
       respond_to do |format|
         format.html do
           anchor = @section ? "section-#{@section}" : nil
-          redirect_to project_wiki_page_path(@project, @page.title, :anchor => anchor)
+          # Title 미사용
+#          redirect_to project_wiki_page_path(@project, @page.title, :anchor => anchor)
+          redirect_to project_wiki_page_path(@project, @page.id, :anchor => anchor)
         end
         format.api do
           if was_new_page
-            render :action => 'show', :status => :created, :location => project_wiki_page_path(@project, @page.title)
+            # Title 미사용
+#            render :action => 'show', :status => :created, :location => project_wiki_page_path(@project, @page.title)
+            render :action => 'show', :status => :created, :location => project_wiki_page_path(@project, @page.id)
           else
             render_api_ok
           end
@@ -224,13 +250,17 @@ class WikiController < ApplicationController
     @page.safe_attributes = params[:wiki_page]
     if request.post? && @page.save
       flash[:notice] = l(:notice_successful_update)
-      redirect_to project_wiki_page_path(@page.project, @page.title)
+      # Title 미사용
+#      redirect_to project_wiki_page_path(@page.project, @page.title)
+      redirect_to project_wiki_page_path(@page.project, @page.id)
     end
   end
 
   def protect
     @page.update_attribute :protected, params[:protected]
-    redirect_to project_wiki_page_path(@project, @page.title)
+    # Title 미사용
+#    redirect_to project_wiki_page_path(@project, @page.title)
+    redirect_to project_wiki_page_path(@project, @page.id)
   end
 
   # show page history

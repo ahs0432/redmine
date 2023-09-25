@@ -10,8 +10,20 @@
       <%= f.text_field :title, :name => 'title', :size => 60, :required => true %>
       <em class="info"><%= l(:text_unallowed_characters) %>: , . / ? ; : |</em>
     </p>
+    <p>
+
+    <!-- 추가 -->
+    <% if params[:parent].present? %>
+      <label class="inline">
+        <%= check_box_tag 'parent', params[:parent], true %>
+        <%= l(:field_parent_title) %>: <%= params[:parent_title] %> (<%= params[:parent] %>)
+        <input type="hidden" name="parent_title" value="<%= params[:parent_title] %>">
+      </label>
+    <% end %>
+    </p>
   </div>
 
   <%= submit_tag(l(:label_next)) %>
+  <%= link_to l(:button_cancel), :controller => 'wiki', :action => 'show', :project_id => @project %>
 
 <% end %>

@@ -2,27 +2,27 @@
 
 <% if @editable %>
 <% if @content.current_version? %>
-  <%= link_to_if_authorized(l(:button_edit), {:action => 'edit', :id => @page.title}, :class => 'icon icon-edit', :accesskey => accesskey(:edit)) %>
+  <%= link_to_if_authorized(l(:button_edit), {:action => 'edit', :id => @page.id}, :class => 'icon icon-edit', :accesskey => accesskey(:edit)) %>
   <%= watcher_link(@page, User.current) %>
 <% end %>
 <% end %>
 
   <%= actions_dropdown do %>
-    <%= link_to_if_authorized(l(:label_history), {:action => 'history', :id => @page.title}, :class => 'icon icon-history') %>
+    <%= link_to_if_authorized(l(:label_history), {:action => 'history', :id => @page.id}, :class => 'icon icon-history') %>
 
     <% if @editable %>
     <% if @content.current_version? %>
-      <%= link_to_if_authorized(l(:button_lock), {:action => 'protect', :id => @page.title, :protected => 1}, :method => :post, :class => 'icon icon-lock') if !@page.protected? %>
-      <%= link_to_if_authorized(l(:button_unlock), {:action => 'protect', :id => @page.title, :protected => 0}, :method => :post, :class => 'icon icon-unlock') if @page.protected? %>
-      <%= link_to_if_authorized(l(:button_rename), {:action => 'rename', :id => @page.title}, :class => 'icon icon-move') %>
-      <%= link_to_if_authorized(l(:button_delete), {:action => 'destroy', :id => @page.title}, :method => :delete, :data => {:confirm => l(:text_are_you_sure)}, :class => 'icon icon-del') %>
+      <%= link_to_if_authorized(l(:button_lock), {:action => 'protect', :id => @page.id, :protected => 1}, :method => :post, :class => 'icon icon-lock') if !@page.protected? %>
+      <%= link_to_if_authorized(l(:button_unlock), {:action => 'protect', :id => @page.id, :protected => 0}, :method => :post, :class => 'icon icon-unlock') if @page.protected? %>
+      <%= link_to_if_authorized(l(:button_rename), {:action => 'rename', :id => @page.id}, :class => 'icon icon-move') %>
+      <%= link_to_if_authorized(l(:button_delete), {:action => 'destroy', :id => @page.id}, :method => :delete, :data => {:confirm => l(:text_are_you_sure)}, :class => 'icon icon-del') %>
     <% else %>
-      <%= link_to_if_authorized(l(:button_rollback), {:action => 'edit', :id => @page.title, :version => @content.version }, :class => 'icon icon-cancel') %>
+      <%= link_to_if_authorized(l(:button_rollback), {:action => 'edit', :id => @page.id, :version => @content.version }, :class => 'icon icon-cancel') %>
     <% end %>
     <% end %>
 
     <% if User.current.allowed_to?(:edit_wiki_pages, @project) %>
-      <%= link_to l(:label_wiki_page_new), new_project_wiki_page_path(@project, :parent => @page.title), :remote => true, :class => 'icon icon-add' %>
+      <%= link_to_if_authorized(l(:label_wiki_page_new), {:action => 'new', :parent => @page.id, :parent_title => @page.title}, :class => 'icon icon-add') %>
     <% end %>
   <% end %>
 </div>
@@ -37,18 +37,18 @@
     <p>
     <% if @content.previous %>
       <%= link_to ("\xc2\xab " + l(:label_previous)),
-                :action => 'show', :id => @page.title, :project_id => @page.project,
+                :action => 'show', :id => @page.id, :project_id => @page.project,
                 :version => @content.previous.version %> |
     <% end %>
     <%= "#{l(:label_revision)} #{@content.version}/#{@page.content.version}" %>
     <% if @content.previous %>
       (<%= link_to l(:label_diff), :controller => 'wiki', :action => 'diff',
-                      :id => @page.title, :project_id => @page.project,
+                      :id => @page.id, :project_id => @page.project,
                       :version => @content.version %>)
     <% end %>
     <% if @content.next %>
       | <%= link_to (l(:label_next) + " \xc2\xbb"), :action => 'show',
-                :id => @page.title, :project_id => @page.project,
+                :id => @page.id, :project_id => @page.project,
                 :version => @content.next.version %>
     <% end %>
     <br />
@@ -93,9 +93,9 @@
 </p>
 
 <% other_formats_links do |f| %>
-  <%= f.link_to 'PDF', :url => {:id => @page.title, :version => params[:version]} %>
-  <%= f.link_to 'HTML', :url => {:id => @page.title, :version => params[:version]} %>
-  <%= f.link_to 'TXT', :url => {:id => @page.title, :version => params[:version]} %>
+  <%= f.link_to 'PDF', :url => {:id => @page.id, :version => params[:version]} %>
+  <%= f.link_to 'HTML', :url => {:id => @page.id, :version => params[:version]} %>
+  <%= f.link_to 'TXT', :url => {:id => @page.id, :version => params[:version]} %>
 <% end if User.current.allowed_to?(:export_wiki_pages, @project) %>
 
 <% content_for :sidebar do %>

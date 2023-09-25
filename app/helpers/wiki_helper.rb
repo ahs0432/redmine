@@ -50,9 +50,11 @@ module WikiHelper
     breadcrumb(
       page.ancestors.reverse.collect do |parent|
         link_to(
+          # Title 미사용
           h(parent.pretty_title),
           {:controller => 'wiki', :action => 'show',
-           :id => parent.title, :project_id => parent.project,
+#           :id => parent.title, :project_id => parent.project,
+           :id => parent.id, :project_id => parent.project,
            :version => nil}
         )
       end
@@ -63,12 +65,16 @@ module WikiHelper
   def wiki_page_edit_cancel_path(page)
     if page.new_record?
       if parent = page.parent
-        project_wiki_page_path(parent.project, parent.title)
+        # Title 미사용
+#        project_wiki_page_path(parent.project, parent.title)
+        project_wiki_page_path(parent.project, parent.id)
       else
         project_wiki_index_path(page.project)
       end
     else
-      project_wiki_page_path(page.project, page.title)
+      # Title 미사용
+#      project_wiki_page_path(page.project, page.title)
+      project_wiki_page_path(page.project, page.id)
     end
   end
 

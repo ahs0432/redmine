@@ -20,14 +20,16 @@
 class Wiki < ActiveRecord::Base
   include Redmine::SafeAttributes
   belongs_to :project
-  has_many :pages, lambda {order(Arel.sql('LOWER(title)').asc)}, :class_name => 'WikiPage', :dependent => :destroy
+  # pages 검색 쿼리 수정
+#  has_many :pages, lambda {order(Arel.sql('LOWER(title)').asc)}, :class_name => 'WikiPage', :dependent => :destroy
+  has_many :pages, lambda {order(Arel.sql('id').asc)}, :class_name => 'WikiPage', :dependent => :destroy
   has_many :redirects, :class_name => 'WikiRedirect'
 
   acts_as_watchable
-
-  validates_presence_of :start_page
-  validates_format_of :start_page, :with => /\A[^,\.\/\?\;\|\:]*\z/
-  validates_length_of :start_page, maximum: 255
+#  start_page 변수검사 제거
+#  validates_presence_of :start_page
+#  validates_format_of :start_page, :with => /\A[^,\.\/\?\;\|\:]*\z/
+#  validates_length_of :start_page, maximum: 255
 
   before_destroy :delete_redirects
 
@@ -45,25 +47,38 @@ class Wiki < ActiveRecord::Base
 
   # find the page with the given title
   # if page doesn't exist, return a new page
-  def find_or_new_page(title)
-    title = start_page if title.blank?
-    find_page(title) || WikiPage.new(:wiki => self, :title => Wiki.titleize(title))
+  # Title 미사용으로 id로 변경
+#  def find_or_new_page(title)
+#    title = start_page if title.blank?
+  def find_or_new_page(id)
+    id = start_page if id.blank?
+    # 신규 페이지 생성 삭제 / 기본 페이지로 이동 설정
+#    find_page(title) || WikiPage.new(:wiki => self, :title => Wiki.titleize(title))
+    find_page(id)
   end
 
   # find the page with the given title
-  def find_page(title, options = {})
+  def find_page(id, options = {})
     @page_found_with_redirect = false
-    title = start_page if title.blank?
-    title = Wiki.titleize(title)
-    page = pages.find_by("LOWER(title) = LOWER(?)", title)
-    if page.nil? && options[:with_redirect] != false
-      # search for a redirect
-      redirect = redirects.where("LOWER(title) = LOWER(?)", title).first
-      if redirect
-        page = redirect.target_page
-        @page_found_with_redirect = true
-      end
-    end
+    # title 미사용 id 사용
+#    title = start_page if title.blank?
+    id = start_page if id.blank?
+    # titleize 제거
+#    title = Wiki.titleize(title)
+#    page = pages.find_by("LOWER(title) = LOWER(?)", title)
+    page = pages.find_by("id = ?", id)
+    # Redirect 제거
+#    if page.nil? && options[:with_redirect] != false
+#      # search for a redirect
+#      redirect = redirects.where("LOWER(title) = LOWER(?)", title).first
+#      if redirect
+#        page = redirect.target_page
+#        @page_found_with_redirect = true
+#      end
+#    end
+#    if page.nil?
+#      page = pages.find_by("id = ?", start_page)
+#    end
     page
   end
 
@@ -83,20 +98,26 @@ class Wiki < ActiveRecord::Base
   # Examples:
   #   Wiki.find_page("bar", project => foo)
   #   Wiki.find_page("foo:bar")
-  def self.find_page(title, options = {})
+  # Title 미사용
+#  def self.find_page(title, options = {})
+  def self.find_page(id, options = {})
     project = options[:project]
-    if title.to_s =~ %r{^([^\:]+)\:(.*)$}
-      project_identifier, title = $1, $2
+#    if title.to_s =~ %r{^([^\:]+)\:(.*)$}
+#      project_identifier, title = $1, $2
+    if id.to_s =~ %r{^([^\:]+)\:(.*)$}
+      project_identifier, id = $1, $2
       project = Project.find_by_identifier(project_identifier) || Project.find_by_name(project_identifier)
     end
     if project && project.wiki
-      page = project.wiki.find_page(title)
+#      page = project.wiki.find_page(title)
+      page = project.wiki.find_page(id)
       if page && page.content
         page
       end
     end
   end
 
+  # 미사용
   # turn a string into a valid page title
   def self.titleize(title)
     # replace spaces with _ and remove unwanted caracters
