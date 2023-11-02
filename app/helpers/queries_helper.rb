@@ -253,7 +253,8 @@ module QueriesHelper
       when :subject
         link_to value, issue_path(item)
       when :parent
-        value ? (value.visible? ? link_to_issue(value, :subject => false) : "##{value.id}") : ''
+        #value ? (value.visible? ? link_to_issue(value, :subject => false) : "##{value.id}") : ''
+        value ? (value.visible? ? link_to_issue(value, :subject => false, :tracker => false) : "##{value.id}") : ''
       when :description
         item.description? ? content_tag('div', textilizable(item, :description), :class => "wiki") : ''
       when :last_notes
