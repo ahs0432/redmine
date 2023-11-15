@@ -43,6 +43,9 @@ module QueriesHelper
         group = :label_time_tracking
       elsif %w(attachment attachment_description).include?(field)
         group = :label_attachment
+      # Add 20231115
+      elsif field_options[:group] == 'or_filter'
+        group = :label_orfilter
       end
       if group
         (grouped[group] ||= []) << [field_options[:name], field]
