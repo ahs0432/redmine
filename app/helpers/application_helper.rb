@@ -1733,7 +1733,7 @@ module ApplicationHelper
       'tablesort-5.2.1.min.js',
       'tablesort-5.2.1.number.min.js',
       'application',
-      'responsive'
+      'responsive',
       # Add 20231121
       'select2.min'
     )
