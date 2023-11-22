@@ -1733,7 +1733,10 @@ module ApplicationHelper
       'tablesort-5.2.1.min.js',
       'tablesort-5.2.1.number.min.js',
       'application',
-      'responsive')
+      'responsive'
+      # Add 20231121
+      'select2.min'
+    )
     unless User.current.pref.warn_on_leaving_unsaved == '0'
       warn_text = escape_javascript(l(:text_warn_on_leaving_unsaved))
       tags <<
@@ -1833,6 +1836,13 @@ module ApplicationHelper
       "rm = window.rm || {};" \
       "rm.AutoComplete = rm.AutoComplete || {};" \
       "rm.AutoComplete.dataSources = JSON.parse('#{data_sources.to_json}');"
+    )
+  end
+
+  # Add 20231121
+  def select2_enable()
+    javascript_tag(
+      "$(document).ready(function() { $('select').select2({ width: '300.594px' }); });"
     )
   end
 
