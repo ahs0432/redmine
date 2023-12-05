@@ -1132,6 +1132,9 @@ en:
   label_match: "match"
   label_not_match: "not match"
 
+  # Add 20231205
+  label_notes_author: "Notes author"
+
   button_login: Login
   button_submit: Submit
   button_save: Save
