@@ -200,6 +200,15 @@ class IssueQuery < Query
     add_available_filter "subject", :type => :text
     add_available_filter "description", :type => :text
     add_available_filter "notes", :type => :text
+    
+    # Add 20231205
+    add_available_filter(
+      "notes_author",
+      :name => l(:label_notes_author),
+      :type => :list,
+      :values => lambda {author_values}
+    )
+    
     add_available_filter "created_on", :type => :date_past
     add_available_filter "updated_on", :type => :date_past
     add_available_filter "closed_on", :type => :date_past
@@ -494,6 +503,18 @@ class IssueQuery < Query
       " AND (#{sql_for_field field, operator.sub(/^!/, ''), value, Journal.table_name, 'notes'})" +
       " AND (#{Journal.visible_notes_condition(User.current, :skip_pre_condition => true)})"
     "#{/^!/.match?(operator) ? "NOT EXISTS" : "EXISTS"} (#{subquery})"
+  end
+
+  # Add 20231205
+  def sql_for_notes_author_field(field, operator, value)
+    neg = (operator == '!' ? 'NOT' : '')
+    subquery = "SELECT 1 FROM #{Journal.table_name}" +
+      " WHERE #{Journal.table_name}.journalized_type='Issue' AND #{Journal.table_name}.journalized_id=#{Issue.table_name}.id" +
+      " AND (#{sql_for_field field, '=', value, Journal.table_name, 'user_id'})" +
+      " AND #{Journal.table_name}.notes != ''" +
+      " AND (#{Journal.visible_notes_condition(User.current, :skip_pre_condition => true)})"
+
+    "#{neg} EXISTS (#{subquery})"
   end
 
   def sql_for_updated_by_field(field, operator, value)
@@ -794,6 +815,8 @@ class IssueQuery < Query
     Principal.visible.where(:id => values).map {|p| [p.name, p.id.to_s]}
   end
   alias :find_author_id_filter_values :find_assigned_to_id_filter_values
+  # Add 20231205
+  alias :find_notes_author_filter_values :find_assigned_to_id_filter_values
 
   IssueRelation::TYPES.each_key do |relation_type|
     alias_method "sql_for_#{relation_type}_field".to_sym, :sql_for_relations
