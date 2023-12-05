@@ -1006,7 +1006,9 @@ class Query < ActiveRecord::Base
       operator = operator_for(field)
 
       # "me" value substitution
-      if %w(assigned_to_id author_id user_id watcher_id updated_by last_updated_by).include?(field)
+      # 20231205 Modified
+      #if %w(assigned_to_id author_id user_id watcher_id updated_by last_updated_by).include?(field)
+      if %w(assigned_to_id author_id user_id watcher_id updated_by last_updated_by notes_author).include?(field)
         if v.delete("me")
           if User.current.logged?
             v.push(User.current.id.to_s)
@@ -1306,7 +1308,11 @@ class Query < ActiveRecord::Base
             sql = "#{db_table}.#{db_field} BETWEEN #{value.first.to_f - 1e-5} AND #{value.first.to_f + 1e-5}"
           end
         else
-          sql = queried_class.send(:sanitize_sql_for_conditions, ["#{db_table}.#{db_field} IN (?)", value])
+          # 20231205 Modified
+          if db_field != "notes_author"
+            sql = queried_class.send(:sanitize_sql_for_conditions, ["#{db_table}.#{db_field} IN (?)", value])
+          end
+          # sql = queried_class.send(:sanitize_sql_for_conditions, ["#{db_table}.#{db_field} IN (?)", value])
         end
       else
         # IN an empty set
