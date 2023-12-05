@@ -744,6 +744,9 @@ ko:
   label_match: "일치한다"
   label_not_match: "불일치한다"
 
+  # Add 20231205
+  label_notes_author: "덧글 작성자"
+
   button_login: 로그인
   button_submit: 확인
   button_save: 저장
