@@ -37,6 +37,8 @@ class ReportsController < ApplicationController
     @issues_by_assigned_to = Issue.by_assigned_to(@project, with_subprojects)
     @issues_by_author = Issue.by_author(@project, with_subprojects)
     @issues_by_subproject = Issue.by_subproject(@project) || []
+    # 20240123 Comment reports add
+    @issues_by_notes_author = Issue.by_notes_author(@project, with_subprojects)
 
     render :template => "reports/issue_report"
   end
@@ -79,6 +81,12 @@ class ReportsController < ApplicationController
       @rows = @project.descendants.visible
       @data = Issue.by_subproject(@project) || []
       @report_title = l(:field_subproject)
+    # 20240123 Comment reports add
+    when "notes_author"
+      @field = "notes_author"
+      @rows = @project.users.sorted
+      @data = Issue.by_notes_author(@project, with_subprojects) || []
+      @report_title = l(:label_notes_author)
     else
       render_404
     end

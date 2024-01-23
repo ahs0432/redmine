@@ -1,6 +1,11 @@
 <h2><%= link_to l(:label_report_plural), project_issues_report_path(@project) %> »</h2>
 
 <h3><%=@report_title%></h3>
-<%= render :partial => 'details', :locals => { :data => @data, :field_name => @field, :rows => @rows } %>
+<!-- 20240123 Comment reports add -->
+<% if @field == 'notes_author' %>
+  <%= render :partial => 'details-notes-author', :locals => { :data => @data, :field_name => 'user_id', :rows => @rows } %>
+<% else %>
+  <%= render :partial => 'details', :locals => { :data => @data, :field_name => @field, :rows => @rows } %>
+<% end %>
 <br />
 <%= link_to l(:button_back), project_issues_report_path(@project) %>

@@ -1584,6 +1584,11 @@ class Issue < ActiveRecord::Base
     r.reject {|r| r["project_id"] == project.id.to_s}
   end
 
+  # 20240123 Comment reports add
+  def self.by_notes_author(project, with_subprojects=false)
+    notes_count_and_group_by(:project => project, :association => :author, :with_subprojects => with_subprojects)
+  end
+
   # Query generator for selecting groups of issue counts for a project
   # based on specific criteria
   #
@@ -1607,6 +1612,39 @@ class Issue < ActiveRecord::Base
           "status_id" => status_id.to_s,
           "closed" => is_closed,
           select_field => field_value.to_s,
+          "total" => total.to_s
+        }
+      end
+  end
+
+  # 20240123 Comment reports add
+  def self.notes_count_and_group_by(options)
+    assoc = reflect_on_association(options[:association])
+    select_field = assoc.foreign_key
+
+    puts Issue.
+      visible(User.current, :project => options[:project], :with_subprojects => options[:with_subprojects]).
+      joins(:status).
+      group(:status_id, :is_closed, select_field).
+      count
+
+    puts Journal.
+      visible(User.current, :project => options[:project], :with_subprojects => options[:with_subprojects]).
+      group(:user_id).
+      where("notes is not null").
+      where("notes != \'\'").
+      count
+
+    Journal.
+      visible(User.current, :project => options[:project], :with_subprojects => options[:with_subprojects]).
+      group(:user_id).
+      where("notes is not null").
+      where("notes != \'\'").
+      count.
+      map do |columns, total|
+        user_id = columns
+        {
+          "user_id" => user_id.to_s,
           "total" => total.to_s
         }
       end

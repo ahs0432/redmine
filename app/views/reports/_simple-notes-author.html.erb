@@ -1,0 +1,18 @@
+<% if rows.empty? %>
+    <p><i><%=l(:label_no_data)%></i></p>
+<% else %>
+<table class="list issue-report">
+<thead><tr>
+<th></th>
+<th>작성한 댓글 수</th>
+</tr></thead>
+<tbody>
+<% for row in rows %>
+<tr>
+  <td class="name"><%= link_to row.name, aggregate_path(@project, field_name, row, :subproject_id => nil) %></td>
+  <td><%= notes_author_aggregate_link data, { field_name => row.id } %></td>
+</tr>
+<% end %>
+</tbody>
+</table>
+<% end %>

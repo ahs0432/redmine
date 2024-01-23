@@ -38,6 +38,16 @@
 </h3>
 <%= render :partial => 'simple', :locals => { :data => @issues_by_author, :field_name => "author_id", :rows => @authors } %>
 <br />
+<!-- 20240123 Comment reports add -->
+<h3>
+  <%=l(:label_notes_author)%>&nbsp;
+  <%= link_to l(:label_details),
+        project_issues_report_details_path(@project, :detail => 'notes_author'),
+        :class => 'icon-only icon-zoom-in',
+        :title => l(:label_details) %>
+</h3>
+<%= render :partial => 'simple-notes-author', :locals => { :data => @issues_by_notes_author, :field_name => "user_id", :rows => @authors } %>
+<br />
 <%= call_hook(:view_reports_issue_report_split_content_left, :project => @project) %>
 </div>
 

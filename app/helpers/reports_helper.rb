@@ -40,6 +40,12 @@ module ReportsHelper
     a > 0 ? link_to(h(a), *args) : '-'
   end
 
+  # 20240123 Comment reports add
+  def notes_author_aggregate_link(data, criteria, *args)
+    a = aggregate data, criteria
+    a > 0 ? h(a) : '-'
+  end
+
   def aggregate_path(project, field, row, options={})
     parameters = {:set_filter => 1, :subproject_id => '!*', field => (row.id || '!*')}.merge(options)
     project_issues_path(row.is_a?(Project) ? row : project, parameters)
